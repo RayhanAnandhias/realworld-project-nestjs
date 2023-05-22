@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tag {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now())
+  articles   Article[]
+}
+
+model User {
+  id         String    @id @default(uuid())
+  username   String    @unique
+  email      String    @unique
+  password   String
+  bio        String?
+  image      String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now())
+  comments   Comment[]
+  articles   Article[]
+  likes      Like[]
+  followers  User[]    @relation(name: "followers")
+  follows    User[]    @relation(name: "followers")
+}
+
+model Article {
+  id              String    @id @default(uuid())
+  slug            String
+  title           String
+  description     String?
+  body            String
+  favorites_count Int       @default(0)
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @default(now())
+  authorId        String
+  tags            Tag[]
+  comments        Comment[]
+  likes           Like[]
+  author          User      @relation(fields: [authorId], references: [id])
+}
+
+model Comment {
+  id         String   @id @default(uuid())
+  body       String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  userId     String
+  articleId  String
+  user       User     @relation(fields: [userId], references: [id])
+  article    Article  @relation(fields: [articleId], references: [id])
+}
+
+model Like {
+  userId    String
+  articleId String
+  user      User    @relation(fields: [userId], references: [id])
+  article   Article @relation(fields: [articleId], references: [id])
+
+  @@id([userId, articleId])
+}
